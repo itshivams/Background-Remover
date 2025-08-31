@@ -1,4 +1,5 @@
 import io
+import os
 from typing import Optional, Literal
 
 from fastapi import FastAPI, File, UploadFile, Form
@@ -7,8 +8,8 @@ from fastapi.responses import Response, JSONResponse
 from PIL import Image, ImageColor
 from rembg import remove
 from rembg.session_factory import new_session
+import uvicorn
 
-import os
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000")
 ALLOWED_ORIGINS = [o.strip() for o in CORS_ORIGINS.split(",") if o.strip()]
 
@@ -22,6 +23,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+U2NET_HOME = os.getenv("U2NET_HOME")
+if U2NET_HOME:
+    os.makedirs(U2NET_HOME, exist_ok=True)
+
 SESSION = new_session("u2net")
 
 @app.get("/health")
@@ -29,12 +34,9 @@ async def health():
     return {"status": "ok"}
 
 def _to_rgba(img: Image.Image) -> Image.Image:
-    if img.mode != "RGBA":
-        return img.convert("RGBA")
-    return img
+    return img if img.mode == "RGBA" else img.convert("RGBA")
 
 def _cover_resize(bg: Image.Image, target_w: int, target_h: int) -> Image.Image:
-    # Resize background to cover target size, then center-crop.
     w, h = bg.size
     scale = max(target_w / w, target_h / h)
     new_w, new_h = int(w * scale), int(h * scale)
@@ -86,3 +88,7 @@ async def process_image(
         return Response(content=buf.getvalue(), media_type="image/png")
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
