@@ -8,4 +8,6 @@ RUN pip install --no-cache-dir numpy==1.26.4 \
 COPY app ./app
 EXPOSE 8000
 ENV PYTHONUNBUFFERED=1
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
+
+
