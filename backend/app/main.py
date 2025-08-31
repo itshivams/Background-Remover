@@ -1,11 +1,16 @@
 import io
 import os
+
+for var in ["OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"]:
+    os.environ.setdefault(var, "1")
+
 from typing import Optional, Literal
 
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from PIL import Image, ImageColor
+
 from rembg import remove
 from rembg.session_factory import new_session
 import uvicorn
@@ -27,11 +32,15 @@ U2NET_HOME = os.getenv("U2NET_HOME")
 if U2NET_HOME:
     os.makedirs(U2NET_HOME, exist_ok=True)
 
-SESSION = new_session("u2net")
+MODEL_NAME = os.getenv("MODEL_NAME")
+if not MODEL_NAME:
+    MODEL_NAME = "u2netp" if os.getenv("RENDER") else "u2net"
+
+SESSION = new_session(MODEL_NAME)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "model": MODEL_NAME}
 
 def _to_rgba(img: Image.Image) -> Image.Image:
     return img if img.mode == "RGBA" else img.convert("RGBA")
