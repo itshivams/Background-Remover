@@ -6,7 +6,7 @@ import './globals.css'
 
 
 type Mode = 'transparent' | 'color' | 'image'
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 function prettyBytes(bytes: number) {
   if (bytes === 0) return '0 B'
@@ -61,7 +61,8 @@ export default function Home() {
         if (!bgFile) { setProcessing(false); setError('Upload a background image or choose a different mode.'); return }
         fd.append('background_image', bgFile)
       }
-      const res = await fetch(`${API_URL}/process`, { method: 'POST', body: fd })
+      const endpoint = API_URL ? `${API_URL}/process` : `/api/process`;
+      const res = await fetch(endpoint, { method: 'POST', body: fd });
       if (!res.ok) throw new Error(await res.text())
       const blob = await res.blob()
       const url = URL.createObjectURL(blob); setResultUrl(url)
