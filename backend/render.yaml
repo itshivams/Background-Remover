@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: bg-backend
+    env: python
+    rootDir: backend
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip setuptools wheel
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: U2NET_HOME
+        value: /opt/models/u2net
+      - key: CORS_ORIGINS
+        value: https://background-remover.itshivam.in/
+    disks:
+      - name: models
+        mountPath: /opt/models
+        sizeGB: 2

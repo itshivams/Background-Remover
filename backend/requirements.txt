@@ -3,3 +3,4 @@ uvicorn[standard]
 pillow
 rembg
 python-multipart
+onnxruntime==1.17.3
